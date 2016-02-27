@@ -125,6 +125,10 @@ $(BOOKTABLE ,
         $(TD Similar to $(D recurrence), except that a random-access _range is
         created.
     ))
+    $(TR $(TD $(D $(LREF slides )))
+        $(TD Creates a _range that returns a fixed-size sliding window
+        (k-mers) over the original _range. Similar to $(D $(LREF chunks)).
+    ))
     $(TR $(TD $(D $(LREF stride)))
         $(TD Iterates a _range with stride $(I n).
     ))
@@ -6743,6 +6747,15 @@ greater than zero.
 If $(D !isInfinite!Source) and $(D source.walkLength) is not evenly
 divisible by $(D chunkSize), the back element of this range will contain
 fewer than $(D chunkSize) elements.
+
+Params:
+    r = Range from which the chunks will be selected
+    chunkSize = Chunk size
+
+See_Also: $(LREF slides)
+
+Returns: Forward range of all chunks with propagated bidirectionality,
+         conditional random access and slicing.
 */
 struct Chunks(Source)
     if (isForwardRange!Source)
