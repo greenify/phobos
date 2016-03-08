@@ -3512,10 +3512,10 @@ private alias lengthType(R) = typeof(R.init.length.init);
    that allows accessing the current element in the $(D n)th range by
    using $(D e[n]).
 
-   $(D zip) is similar to $(LREF lockstep), but $(LREF lockstep) doesn't
-   bundle its elements and uses the $(D opApply) protocol.
-   $(LREF lockstep) allows reference access to the elements in the
-   $(D foreach) iterations.
+   `zip` is similar to $(LREF lockstep), but `lockstep` doesn't
+   bundle its elements and uses the `opApply` protocol.
+   `lockstep` allows reference access to the elements in
+   `foreach` iterations.
 
    $(D Zip) offers the lowest range facilities of all components, e.g. it
    offers random access iff all ranges offer random access, and also
@@ -4189,7 +4189,7 @@ private string lockstepMixin(Ranges...)(bool withIndex)
 
    See_Also: $(LREF zip)
 
-       `lockstep` is similar to `zip`, but `zip` bundles its
+       `lockstep` is similar to $(LREF zip), but `zip` bundles its
        elements and returns a range.
        `lockstep` also supports reference access.
        Use `zip` if you want to pass the result to a range function.
