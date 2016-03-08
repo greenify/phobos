@@ -4187,32 +4187,12 @@ private string lockstepMixin(Ranges...)(bool withIndex)
 
    By default $(D StoppingPolicy) is set to $(D StoppingPolicy.shortest).
 
-   -------
-   int[] as = [0, 1, 2];
-   int[] bs = [0, 0, 0];
-   foreach (ref a, ref b; lockstep(as, bs))
-   {
-       a += 1;
-       b += 1;
-   }
-   assert(as == [1, 2, 3]);
-   assert(bs == [1, 1, 1]);
-   -------
-
-   Lockstep also supports iterating with an index variable:
-
-   -------
-   foreach (index, a, b; lockstep(as, bs))
-   {
-       writefln("Index %s:  a = %s, b = %s", index, a, b);
-   }
-   -------
-
    See_Also: $(LREF zip)
 
-       $(D lockstep) is similar $(LREF zip), but $(LREF zip) bundles its
+       `lockstep` is similar to `zip`, but `zip` bundles its
        elements and returns a range.
-       Use $(LREF zip) if you want to pass the result to a range function.
+       `lockstep` also supports reference access.
+       Use `zip` if you want to pass the result to a range function.
 */
 struct Lockstep(Ranges...)
     if (Ranges.length > 1 && allSatisfy!(isInputRange, Ranges))
@@ -4262,15 +4242,22 @@ Lockstep!(Ranges) lockstep(Ranges...)(Ranges ranges, StoppingPolicy s)
 ///
 unittest
 {
-   auto arr1 = [1,2,3,4,5];
+   auto arr1 = [1,2,3,4,5,100];
    auto arr2 = [6,7,8,9,10];
 
-   foreach (ref a, ref b; lockstep(arr1, arr2))
+   foreach (ref a, b; lockstep(arr1, arr2))
    {
        a += b;
    }
 
-   assert(arr1 == [7,9,11,13,15]);
+   assert(arr1 == [7,9,11,13,15,100]);
+
+   /// Lockstep also supports iterating with an index variable:
+   foreach (index, a, b; lockstep(arr1, arr2))
+   {
+       assert(arr1[index] == a);
+       assert(arr2[index] == b);
+   }
 }
 
 unittest
@@ -4385,20 +4372,6 @@ unittest
     static assert(!__traits(compiles, {
         foreach (ref a, ref b; lockstep(r1, r2)) { a++; }
     }));
-}
-
-unittest
-{
-    // example from docs
-    int[] as = [0, 1, 2];
-    int[] bs = [0, 0, 0];
-    foreach (ref a, ref b; lockstep(as, bs))
-    {
-        a += 1;
-        b += 1;
-    }
-    assert(as == [1, 2, 3]);
-    assert(bs == [1, 1, 1]);
 }
 
 
