@@ -3884,25 +3884,21 @@ pure unittest
 ///
 pure unittest
 {
-    import std.algorithm : equal, map;
     import std.conv: to;
 
     int[] a = [ 1, 2, 3 ];
     string[] b = [ "a", "b", "c" ];
+    string[] result;
 
-    auto result = zip(a, b).map!(tup => tup[0].to!string ~ tup[1]);
-    assert(result.equal(["1a", "2b", "3c"]));
-
-    size_t idx = 0;
     foreach (tup; zip(a, b))
     {
-        assert(tup[0] == a[idx]);
-        assert(tup[1] == b[idx]);
-        ++idx;
+        result ~= tup[0].to!string ~ tup[1];
     }
 
-    idx = 0;
-    // it supports automatic tuple unpacking too
+    assert(result == [ "1a", "2b", "3c" ]);
+
+    size_t idx = 0;
+    // unpacking tuple elements with foreach
     foreach (e1, e2; zip(a, b))
     {
         assert(e1 == a[idx]);
