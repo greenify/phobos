@@ -16,6 +16,8 @@ $(T2 chunkBy,
         returns a range containing 3 subranges: the first with just
         $(D [1, 1]); the second with the elements $(D [1, 2]) and $(D [2, 2]);
         and the third with just $(D [2, 1]).)
+$(T2 cumulativeFold,
+        Accumulate and fold a range `[1, 2, 3].accumulate` returns `[1, 3, 6]`)
 $(T2 each,
         $(D each!writeln([1, 2, 3])) eagerly prints the numbers $(D 1), $(D 2)
         and $(D 3) on their own lines.)
@@ -422,6 +424,149 @@ private struct _Cache(R, bool bidir)
                 return this[low .. $].take(high - low);
             }
         }
+    }
+}
+
+private enum LastType {WITHIN, LAST, EMPTY};
+
+/**
+Accumulate the results of fold/reduce (aka `scanLeft`).
+Instead of folding to one element, all intermediate result are returned too.
+
+Params:
+    r = range that should be accumulated
+    seed = initial element of the accumulation
+    fold = custom fold function
+
+Returns:
+    Accumulated range of all fold operations
+*/
+auto cumulativeFolf(alias fold = "a + b", Range, SeedType = ElementType!Range)
+               (Range r, SeedType seed = SeedType.init)
+    if (!is(CommonType!(SeedType, ElementType!Range) == void))
+{
+    alias cumulativeFoldFun = binaryFun!fold;
+
+    static struct CumulativeFold
+    {
+        Range r;
+        SeedType seed;
+        LastType lastEl = LastType.WITHIN;
+
+        ///
+        this(Range r, SeedType seed)
+        {
+            this.seed = seed;
+            this.r = r;
+            if (!this.r.empty)
+                this.popFront;
+            else
+                lastEl = LastType.LAST;
+        }
+
+        ///
+        auto front()
+        {
+            return seed;
+        }
+
+        ///
+        auto popFront()
+        {
+            with (LastType)
+            final switch (lastEl)
+            {
+                case WITHIN:
+                    seed = cumulativeFoldFun(seed, r.front);
+                    r.popFront;
+                    if (r.empty)
+                        lastEl = LAST;
+                    break;
+                case LAST:
+                    lastEl = EMPTY;
+                    break;
+                case EMPTY:
+                    assert(0, "Popping an empty array");
+            }
+        }
+
+        ///
+        bool empty()
+        {
+            return lastEl == LastType.EMPTY;
+        }
+
+        static if (isForwardRange!Range)
+        {
+            ///
+            typeof(this) save()
+            {
+                typeof(this) c = this;
+                c.r = r.save;
+                return c;
+            }
+        }
+    }
+    return cumulativeFold(r, seed);
+}
+
+///
+@safe pure nothrow unittest
+{
+    import std.algorithm: equal;
+    assert([0, 1, 2, 3].cumulativeFold.equal([0, 1, 3, 6]));
+
+    import std.range: iota;
+    import std.array: array;
+    assert(iota(101).cumulativeFold.array[$-1] == 5050);
+
+    assert([1, 1, -1, -1].cumulativeFold.equal([1, 2, 1, 0]));
+
+    import std.algorithm.comparison: max;
+    import std.algorithm.searching: maxPos;
+    auto arr = [-2, 1, -3, 4, -1, 2, 1, -5, 4];
+    assert(arr.cumulativeFold!`max(0, a + b)`.maxPos.front == 6);
+}
+
+unittest
+{
+    import std.algorithm: equal;
+    assert([1, 2, 3].cumulativeFold!`a * b`(10).equal([10, 20, 60]));
+}
+
+// save
+@safe pure nothrow unittest
+{
+    import std.range: dropOne;
+    auto arr = [1, 1, -1, -1].cumulativeFold;
+    assert(arr.front == 1);
+    assert(arr.dropOne.front == 2);
+    assert(arr.front == 1);
+
+    import std.algorithm: maxPos, minPos;
+    assert(arr.maxPos.front == 2);
+    assert(arr.minPos.front == 0);
+}
+
+// seed with a float
+@nogc @safe pure nothrow unittest
+{
+    import std.algorithm: equal;
+    import std.math: approxEqual;
+
+    static immutable arrInt = [1, 1, -1, -1];
+    static immutable arrFloat = [1., 2., 1., 0.];
+    assert(arrInt.cumulativeFold(0.).equal(arrFloat));
+}
+
+// test with dummy ranges
+@safe pure nothrow unittest
+{
+    import std.algorithm: equal;
+    import std.internal.test.dummyrange;
+    foreach (DummyType; AllDummyRanges) {
+        DummyType d;
+        assert(d.cumulativeFold.equal([1, 3, 6, 10, 15, 21, 28, 36, 45, 55]));
     }
 }
 
@@ -2972,7 +3117,6 @@ template fold(fun...) if (fun.length >= 1)
     static assert(is(typeof(arr.fold!((a, b) => a))));
     static assert(is(typeof(arr.fold!((a, b) => a)(1))));
 }
-
 
 // splitter
 /**
