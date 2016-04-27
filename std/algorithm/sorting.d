@@ -27,6 +27,8 @@ $(T2 strictlyOrdered,
         $(D strictlyOrdered(1, 1, 2, 3)) returns $(D false).)
 $(T2 makeIndex,
         Creates a separate index for a range.)
+$(T2 merge,
+        Merges two sorted ranges.)
 $(T2 multiSort,
         Sorts by multiple keys.)
 $(T2 nextEvenPermutation,
@@ -829,6 +831,133 @@ unittest
     assert(isSorted!
             ((byte a, byte b){ return arr1[a] < arr1[b];})
             (index3));
+}
+
+/**
+Lazily merge two sorted ranges.
+The predicate to sort by less needs to match the existing sorting of r1 and r2.
+
+Params:
+    less = predicate to sort by.
+    r1 = second range of elements to merge
+    r2 = second range of elements to merge
+
+Returns:
+    Sorted range of both r1 and r2
+*/
+auto merge(alias less = "a < b", R1, R2)(R1 r1, R2 r2)
+    if (!is(CommonType!(ElementType!R1, ElementType!R2) == void))
+{
+    alias CommonElement = CommonType!(ElementType!R1, ElementType!R2);
+    alias lessFun = binaryFun!less;
+
+    struct MergeRange
+    {
+
+    private:
+        R1 r1;
+        R2 r2;
+        bool r1isFrontRange;
+
+        void lookAtFront() @nogc @safe nothrow pure
+        {
+            if (r1.empty)
+                r1isFrontRange = false;
+            else if(r2.empty)
+                r1isFrontRange = true;
+            else if (lessFun(r1.front, r2.front))
+                r1isFrontRange = true;
+            else
+                r1isFrontRange = false;
+        }
+
+    public:
+
+        ///
+        this(R1 r1, R2 r2)
+        {
+            this.r1 = r1;
+            this.r2 = r2;
+            lookAtFront();
+        }
+
+        ///
+        CommonElement front() @property
+        {
+            if (r1isFrontRange)
+                return r1.front;
+            else
+                return r2.front;
+        }
+
+        ///
+        void popFront()
+        {
+            assert(!empty, "both ranges are empty");
+            if (r1isFrontRange)
+                r1.popFront;
+            else
+                r2.popFront;
+
+            lookAtFront();
+        }
+
+        ///
+        bool empty() @property
+        {
+            return r1.empty && r2.empty;
+        }
+
+        ///
+        static if(isForwardRange!R1 && isForwardRange!R2)
+        {
+            ///
+            typeof(this) save()
+            {
+                typeof(this) c = this;
+                return c;
+            }
+        }
+    }
+    return MergeRange(r1, r2);
+}
+
+///
+@safe nothrow pure unittest
+{
+    import std.algorithm.comparison: equal;
+    assert([1, 4, 8].merge([2, 6, 10]).equal([1, 2, 4, 6, 8, 10]));
+}
+
+@safe nothrow pure unittest
+{
+    // implicit common type
+    import std.algorithm.comparison: equal;
+    assert([1, 4, 8].merge([2.5, 6.5, 10]).equal([1, 2.5, 4, 6.5, 8, 10]));
+
+    // save
+    auto arr = [1, 4, 8].merge([2.5, 6.5, 10]);
+    assert(arr.front == 1);
+    assert(arr.dropOne.front == 2.5);
+    assert(arr.front == 1);
+
+    // test all dummy ranges
+    import std.internal.test.dummyrange;
+    auto dummyResult = [1, 1.5, 2, 3, 3.5, 4, 5, 6, 7, 7.5, 8, 9, 10];
+    foreach (DummyType; AllDummyRanges)
+    {
+        DummyType d;
+        assert(d.merge([1.5, 3.5, 7.5]).equal(dummyResult));
+    }
+}
+
+@nogc @safe nothrow pure unittest
+{
+    import std.algorithm.comparison: equal;
+    static immutable r1 = [3, 5, 9];
+    static immutable r2 = [1, 7, 8];
+    static immutable result = [1, 3, 5, 7, 8, 9];
+    assert(r1.merge(r2).equal(result));
 }
 
 private template validPredicates(E, less...)
