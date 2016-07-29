@@ -4210,3 +4210,8 @@ string tempDir() @trusted
     }
     return cache;
 }
+
+int uncovered()
+{
+    return 2;
+}
