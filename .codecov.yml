@@ -1,0 +1,11 @@
+coverage:
+  precision: 4
+  round: down # how to round precision
+  range: "80...100"
+
+  status:
+    project: true
+    patch: true
+    changes: true
+
+comment: false
