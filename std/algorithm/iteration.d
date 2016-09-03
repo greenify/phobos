@@ -2595,7 +2595,7 @@ Returns:
 See_Also:
     $(HTTP en.wikipedia.org/wiki/Fold_(higher-order_function), Fold (higher-order function))
 
-    $(LREF fold) is functionally equivalent to $(LREF reduce) with the argument order reversed,
+    $(LREF fold) is functionally equivalent to $(LREF _reduce) with the argument order reversed,
     and without the need to use $(LREF tuple) for multiple seeds. This makes it easier
     to use in UFCS chains.
 
