@@ -3031,6 +3031,8 @@ if (isBidirectionalRange!R)
 
     $(D dropBackOne) provides the same functionality but instead calls
     $(D range.popBack()).
+
+    In other languages these functions are often called `tail` and `init`.
 +/
 R dropOne(R)(R range)
 if (isInputRange!R)
