@@ -22,7 +22,13 @@ $(TR $(TH Function Name) $(TH Description)
     $(TR $(TD $(D $(LREF forward)))
         $(TD Forwards function arguments while saving ref-ness.
     ))
-    $(TR $(TD $(D $(LREF lessThan)), $(D $(LREF greaterThan)), $(D $(LREF equalTo)))
+    $(TR $(TD $(D $(LREF lessThan)),
+             $(D $(LREF greaterThan)),
+             $(D $(LREF lessOrEqual)),
+             $(D $(LREF greaterOrEqual))
+             $(D $(LREF equalTo)),
+             $(D $(LREF notEqualTo)),
+          )
         $(TD Ready-made predicate functions to compare two values.
     ))
     $(TR $(TD $(D $(LREF memoize)))
@@ -529,6 +535,68 @@ alias equalTo = safeOp!"==";
     assert(equalTo(0, 0U));
     assert(!equalTo(-1, ~0U));
 }
+
+/**
+   Predicate that returns $(D_PARAM a <= b).
+   Correctly compares signed and unsigned integers, ie. -1 <= 2U.
+*/
+alias lessOrEqual = safeOp!"<=";
+
+///
+pure @safe @nogc nothrow unittest
+{
+    assert(lessOrEqual(2, 3));
+    assert(lessOrEqual(2U, 3U));
+    assert(lessOrEqual(2, 3.0));
+    assert(lessOrEqual(-2, 3U));
+    assert(lessOrEqual(2, 3U));
+    assert(lessOrEqual(2, 2U));
+    assert(!lessOrEqual(3U, -2));
+    assert(!lessOrEqual(3U, 2));
+    assert(lessOrEqual(0, 0));
+    assert(lessOrEqual(0U, 0));
+    assert(lessOrEqual(0, 0U));
+}
+
+/**
+   Predicate that returns $(D_PARAM a >= b).
+   Correctly compares signed and unsigned integers, ie. 2U >= -1.
+*/
+alias greaterOrEqual = safeOp!">=";
+
+///
+@safe unittest
+{
+    assert(!greaterOrEqual(2, 3));
+    assert(!greaterOrEqual(2U, 3U));
+    assert(!greaterOrEqual(2, 3.0));
+    assert(!greaterOrEqual(-2, 3U));
+    assert(!greaterOrEqual(2, 3U));
+    assert(greaterOrEqual(3U, -2));
+    assert(greaterOrEqual(3U, 2));
+    assert(greaterOrEqual(2U, 2));
+    assert(greaterOrEqual(0, 0));
+    assert(greaterOrEqual(0U, 0));
+    assert(greaterOrEqual(0, 0U));
+}
+
+/**
+   Predicate that returns $(D_PARAM a != b).
+   Correctly compares signed and unsigned integers, ie. `-1 != ~0U`.
+*/
+alias notEqualTo = safeOp!"!=";
+
+///
+@safe unittest
+{
+    assert(notEqualTo(0U, 1));
+    assert(notEqualTo(1, 0U));
+    assert(!notEqualTo(0U, 0));
+    assert(!notEqualTo(0, 0U));
+    assert(!notEqualTo(-1, ~0U)); // ?
+    assert(notEqualTo(1, ~0U));
+}
+
 /**
    N-ary predicate that reverses the order of arguments, e.g., given
    $(D pred(a, b, c)), returns $(D pred(c, b, a)).
