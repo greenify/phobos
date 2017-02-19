@@ -1,0 +1,26 @@
+Added `std.range.seed` to use default values for empty ranges
+
+$(REF seed, std, range, primitives) allows to provide a default value when dealing
+with possibly empty ranges:
+
+------
+import std.range : drop, seed;
+
+auto arr = [0, 1, 2];
+
+// given a non-empty range, it is a pure proxy
+auto d = arr.seed(42);
+writeln(d); // SeededRange([0, 1, 2])
+assert(d.front == 0);
+assert(d.length == 3);
+
+// given an empty range, it uses the seed
+auto e = arr.drop(3).seed(42);
+writeln(e); // SeededRange(42)
+assert(e.front == 42);
+
+// the seeded range has a length of 1
+assert(e.length == 1);
+e.popFront;
+assert(e.empty);
+------
