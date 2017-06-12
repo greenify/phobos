@@ -4671,7 +4671,7 @@ private:
     }
     else
         static assert(0, "Not implemented");
-private:
+
     static uint getIeeeFlags()
     {
         version(InlineAsm_X86_Any)
