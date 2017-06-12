@@ -1136,7 +1136,9 @@ if (isInputRange!R &&
 ///
 @safe unittest
 {
+    import std.algorithm.comparison : among;
     import std.ascii : isAlpha;
+
     assert("abc".endsWith!(a => a.isAlpha));
     assert("abc".endsWith!isAlpha);
 
@@ -1145,7 +1147,6 @@ if (isInputRange!R &&
     assert(!"ab1".endsWith!isAlpha);
     assert(!"".endsWith!(a => a.isAlpha));
 
-    import std.algorithm.comparison : among;
     assert("abc".endsWith!(a => a.among('c', 'd') != 0));
     assert(!"abc".endsWith!(a => a.among('a', 'b') != 0));
 
@@ -3759,6 +3760,9 @@ if (isForwardRange!Range && !isInfinite!Range &&
 
 @safe pure unittest
 {
+    import std.internal.test.dummyrange : AllDummyRanges;
+    import std.range : cycle;
+
     // should work with const
     const(int)[] immArr = [2, 1, 3];
     assert(immArr.minIndex == 1);
@@ -3775,11 +3779,9 @@ if (isForwardRange!Range && !isInfinite!Range &&
     assert(["b", "a", "c"].minIndex == 1);
 
     // infinite range
-    import std.range : cycle;
     static assert(!__traits(compiles, cycle([1]).minIndex));
 
     // with all dummy ranges
-    import std.internal.test.dummyrange : AllDummyRanges;
     foreach (DummyType; AllDummyRanges)
     {
         static if (isForwardRange!DummyType && !isInfinite!DummyType)

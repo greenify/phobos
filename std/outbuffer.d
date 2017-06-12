@@ -384,10 +384,10 @@ class OutBuffer
 
 @safe unittest
 {
-    import std.range;
-    static assert(isOutputRange!(OutBuffer, char));
-
     import std.algorithm;
+    import std.range;
+
+    static assert(isOutputRange!(OutBuffer, char));
   {
     OutBuffer buf = new OutBuffer();
     "hello".copy(buf);

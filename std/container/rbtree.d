@@ -56,10 +56,9 @@ module std.container.rbtree;
     assert(equal(ubt[], [0, 0, 1, 1]));
 }
 
+public import std.container.util;
 import std.format;
 import std.functional : binaryFun;
-
-public import std.container.util;
 
 version(unittest) debug = RBDoChecks;
 

@@ -61,9 +61,8 @@ module std.algorithm.comparison;
 // FIXME
 import std.functional; // : unaryFun, binaryFun;
 import std.range.primitives;
-import std.traits;
-// FIXME
 import std.meta : allSatisfy;
+import std.traits;
 import std.typecons; // : Flag, Tuple, tuple, Yes;
 
 /**
@@ -863,7 +862,7 @@ range of range (of range...) comparisons.
 {
     import std.algorithm.iteration : map;
     import std.internal.test.dummyrange : ReferenceForwardRange,
-        ReferenceInputRange, ReferenceInfiniteForwardRange;
+        ReferenceInfiniteForwardRange, ReferenceInputRange;
     import std.math : approxEqual;
 
     // various strings

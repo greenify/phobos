@@ -6,8 +6,9 @@ module std.regex.internal.kickstart;
 
 package(std.regex):
 
-import std.range.primitives, std.utf;
+import std.range.primitives;
 import std.regex.internal.ir;
+import std.utf;
 
 //utility for shiftOr, returns a minimum number of bytes to test in a Char
 uint effectiveSize(Char)()

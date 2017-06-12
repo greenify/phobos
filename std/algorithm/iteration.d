@@ -2515,8 +2515,8 @@ if (isInputRange!RoR && isInputRange!(ElementType!RoR))
 @safe unittest
 {
     import std.algorithm.comparison : equal;
-    import std.range.interfaces : inputRangeObject;
     import std.range : repeat;
+    import std.range.interfaces : inputRangeObject;
 
     static assert(isInputRange!(typeof(joiner([""]))));
     static assert(isForwardRange!(typeof(joiner([""]))));
@@ -4821,6 +4821,7 @@ private auto sumKahan(Result, R)(Result result, R r)
 /// Ditto
 @safe pure nothrow unittest
 {
+    import std.math : approxEqual;
     import std.range;
 
     //simple integral sumation
@@ -4843,7 +4844,6 @@ private auto sumKahan(Result, R)(Result result, R r)
     assert(sum([1F, 2, 3, 4]) == 10);
 
     //Force pair-wise floating point sumation on large integers
-    import std.math : approxEqual;
     assert(iota(ulong.max / 2, ulong.max / 2 + 4096).sum(0.0)
                .approxEqual((ulong.max / 2) * 4096.0 + 4096^^2 / 2));
 }

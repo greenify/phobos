@@ -378,8 +378,8 @@ if (isInputRange!Range)
 ///
 @safe pure /*nothrow*/ unittest
 {
-    import std.range;
     import std.typecons;
+    import std.range;
     auto a = assocArray(zip([0, 1, 2], ["a", "b", "c"])); // aka zipMap
     assert(is(typeof(a) == string[int]));
     assert(a == [0:"a", 1:"b", 2:"c"]);

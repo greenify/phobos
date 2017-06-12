@@ -13,8 +13,7 @@ module std.experimental.allocator.typed;
 
 import std.experimental.allocator;
 import std.experimental.allocator.common;
-import std.range : isInputRange, isForwardRange, walkLength, save, empty,
-    front, popFront;
+import std.range : isInputRange, isForwardRange, walkLength, save, empty, front, popFront;
 import std.traits : hasElaborateDestructor, isPointer;
 import std.typecons : Flag, No, Yes;
 

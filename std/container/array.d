@@ -19,10 +19,9 @@
 module std.container.array;
 
 import core.exception : RangeError;
+public import std.container.util;
 import std.range.primitives;
 import std.traits;
-
-public import std.container.util;
 
 ///
 @system unittest
@@ -251,11 +250,9 @@ private struct RangeT(A)
 struct Array(T)
 if (!is(Unqual!T == bool))
 {
+    import core.memory : GC;
     import core.stdc.stdlib : free, malloc, realloc;
     import core.stdc.string : memcpy, memmove, memset;
-
-    import core.memory : GC;
-
     import std.exception : enforce;
     import std.typecons : RefCounted, RefCountedAutoInitialize;
 

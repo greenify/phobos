@@ -79,7 +79,6 @@ import std.algorithm.mutation : SwapStrategy;
 import std.functional; // : unaryFun, binaryFun;
 import std.range.primitives;
 import std.typecons : Flag;
-// FIXME
 import std.meta; // : allSatisfy;
 import std.range; // : SortedRange;
 import std.traits;
@@ -709,12 +708,16 @@ if (isRandomAccessRange!Range && hasLength!Range && hasSlicing!Range)
 {
     void test(alias less)()
     {
+        import std.algorithm.iteration : map;
+        import std.algorithm.searching : all;
+        import std.random : Random, uniform, unpredictableSeed;
+        import std.stdio : writeln;
+
         int[] a;
         size_t pivot;
 
         a = [-9, -4, -2, -2, 9];
         pivot = pivotPartition!less(a, a.length / 2);
-        import std.algorithm.searching : all;
         assert(a[0 .. pivot].all!(x => x <= a[pivot]));
         assert(a[pivot .. $].all!(x => x >= a[pivot]));
 
@@ -746,9 +749,6 @@ if (isRandomAccessRange!Range && hasLength!Range && hasSlicing!Range)
         assert(pivot == 0 || pivot == 1);
         assert(a == [ 42, 42 ]);
 
-        import std.algorithm.iteration : map;
-        import std.random;
-        import std.stdio;
         auto s = unpredictableSeed;
         auto g = Random(s);
         a = iota(0, uniform(1, 1000, g))

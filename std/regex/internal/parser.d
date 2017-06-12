@@ -5,9 +5,13 @@
 module std.regex.internal.parser;
 
 static import std.ascii;
-import std.range.primitives, std.uni, std.meta,
-    std.traits, std.typecons, std.exception;
+import std.exception;
+import std.meta;
+import std.range.primitives;
 import std.regex.internal.ir;
+import std.traits;
+import std.typecons;
+import std.uni;
 
 // package relevant info from parser into a regex object
 auto makeRegex(S, CG)(Parser!(S, CG) p)

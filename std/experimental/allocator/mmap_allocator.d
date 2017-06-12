@@ -30,8 +30,8 @@ struct MmapAllocator
         /// Allocator API.
         void[] allocate(size_t bytes) shared
         {
-            import core.sys.posix.sys.mman : mmap, MAP_ANON, PROT_READ,
-                PROT_WRITE, MAP_PRIVATE, MAP_FAILED;
+            import core.sys.posix.sys.mman : MAP_ANON, MAP_FAILED, mmap,
+                   MAP_PRIVATE, PROT_READ, PROT_WRITE;
             if (!bytes) return null;
             auto p = mmap(null, bytes, PROT_READ | PROT_WRITE,
                 MAP_PRIVATE | MAP_ANON, -1, 0);
@@ -49,8 +49,8 @@ struct MmapAllocator
     }
     else version(Windows)
     {
-        import core.sys.windows.windows : VirtualAlloc, VirtualFree, MEM_COMMIT,
-            PAGE_READWRITE, MEM_RELEASE;
+        import core.sys.windows.windows : MEM_COMMIT, MEM_RELEASE,
+            PAGE_READWRITE, VirtualAlloc, VirtualFree;
 
         /// Allocator API.
         void[] allocate(size_t bytes) shared

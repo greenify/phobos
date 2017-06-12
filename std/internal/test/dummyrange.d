@@ -6,6 +6,7 @@ module std.internal.test.dummyrange;
 
 import std.meta;
 import std.range.primitives;
+import std.traits : isArray;
 import std.typecons;
 
 enum RangeType
@@ -27,8 +28,6 @@ enum ReturnBy
     Reference,
     Value
 }
-
-import std.traits : isArray;
 
 // Range that's useful for testing other higher order ranges,
 // can be parametrized with attributes.  It just dumbs down an array of

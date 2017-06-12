@@ -8,8 +8,8 @@
 module std.datetime.interval;
 
 import core.time : dur, Duration;
-import std.datetime.date : AllowDayOverflow, DateTimeException, daysToDayOfWeek,
-                           DayOfWeek, isTimePoint, Month;
+import std.datetime.date : AllowDayOverflow, DateTimeException, DayOfWeek,
+                           daysToDayOfWeek, isTimePoint, Month;
 import std.exception : enforce;
 import std.traits : isIntegral, Unqual;
 import std.typecons : Flag;

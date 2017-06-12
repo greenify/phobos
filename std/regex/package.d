@@ -296,9 +296,10 @@ Macros:
  +/
 module std.regex;
 
-import std.range.primitives, std.traits;
+import std.range.primitives;
 import std.regex.internal.ir;
 import std.regex.internal.thompson; //TODO: get rid of this dependency
+import std.traits;
 import std.typecons; // : Flag, No, Yes;
 
 /++

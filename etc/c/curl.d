@@ -38,9 +38,7 @@ module etc.c.curl;
 import core.stdc.config;
 import core.stdc.time;
 import std.socket;
-
-// linux
-import core.sys.posix.sys.socket;
+import core.sys.posix.sys.socket; // linux
 
 //
 // LICENSE FROM CURL HEADERS

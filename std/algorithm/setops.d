@@ -38,15 +38,12 @@ T2=$(TR $(TDNW $(LREF $1)) $(TD $+))
  */
 module std.algorithm.setops;
 
-import std.range.primitives;
-
 // FIXME
-import std.functional; // : binaryFun, unaryFun;
-import std.traits;
-// FIXME
-import std.meta; // : AliasSeq, allSatisfy, anySatisfy, staticMap;
-
 import std.algorithm.sorting; // : Merge;
+import std.functional; // : binaryFun, unaryFun;
+import std.meta; // : AliasSeq, allSatisfy, anySatisfy, staticMap;
+import std.range.primitives;
+import std.traits;
 import std.typecons : No;
 
 // cartesianProduct
@@ -250,9 +247,9 @@ if (!allSatisfy!(isForwardRange, R1, R2) ||
     import std.algorithm.comparison : equal;
     import std.algorithm.iteration : map;
     import std.algorithm.searching : canFind;
+    import std.range;
     import std.typecons : tuple;
 
-    import std.range;
     auto N = sequence!"n"(0);
 
     // To force the template to fall to the second case, we wrap N in a struct

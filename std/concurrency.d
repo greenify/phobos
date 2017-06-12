@@ -63,14 +63,13 @@
  */
 module std.concurrency;
 
-public import std.variant;
-
 import core.atomic;
 import core.sync.condition;
 import core.sync.mutex;
 import core.thread;
 import std.concurrencybase;
 import std.range.primitives;
+public import std.variant;
 import std.traits;
 
 private

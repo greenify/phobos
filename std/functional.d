@@ -105,8 +105,8 @@ template unaryFun(alias fun, string parmName = "a")
     {
         static if (!fun._ctfeMatchUnary(parmName))
         {
-            import std.algorithm, std.conv, std.exception, std.math, std.range, std.string;
-            import std.meta, std.traits, std.typecons;
+            import std.algorithm, std.conv, std.exception, std.math, std.meta;
+            import std.range, std.string, std.traits, std.typecons;
         }
         auto unaryFun(ElementType)(auto ref ElementType __a)
         {

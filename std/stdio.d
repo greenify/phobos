@@ -1268,8 +1268,8 @@ specified file segment was already locked.
         else
         version(Windows)
         {
-            import core.sys.windows.windows : GetLastError, LockFileEx, LOCKFILE_EXCLUSIVE_LOCK,
-                ERROR_IO_PENDING, ERROR_LOCK_VIOLATION, LOCKFILE_FAIL_IMMEDIATELY;
+            import core.sys.windows.windows : ERROR_IO_PENDING, ERROR_LOCK_VIOLATION,
+                   GetLastError, LockFileEx, LOCKFILE_EXCLUSIVE_LOCK, LOCKFILE_FAIL_IMMEDIATELY;
             immutable type = lockType == LockType.readWrite
                 ? LOCKFILE_EXCLUSIVE_LOCK : 0;
             immutable res = lockImpl!LockFileEx(start, length,

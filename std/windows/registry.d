@@ -43,18 +43,17 @@ import std.array;
 import std.conv;
 import std.exception;
 import std.internal.cstring;
-private import std.internal.windows.advapi32;
+import std.internal.windows.advapi32;
 import std.system : Endian, endian;
 import std.utf : toUTF16, toUTF8;
 import std.windows.syserror;
+import core.sys.windows.winbase : lstrlenW;
 
 //debug = winreg;
 debug(winreg) import std.stdio;
 
 private
 {
-    import core.sys.windows.winbase : lstrlenW;
-
     void enforceSucc(LONG res, lazy string message, string fn = __FILE__, size_t ln = __LINE__)
     {
         if (res != ERROR_SUCCESS)
@@ -230,15 +229,11 @@ private import core.sys.windows.winnt :
     WRITE_DAC               ,
     WRITE_OWNER             ,
     SYNCHRONIZE             ,
-
     STANDARD_RIGHTS_REQUIRED,
-
     STANDARD_RIGHTS_READ    ,
     STANDARD_RIGHTS_WRITE   ,
     STANDARD_RIGHTS_EXECUTE ,
-
     STANDARD_RIGHTS_ALL     ,
-
     SPECIFIC_RIGHTS_ALL     ;
 
 private import core.sys.windows.winreg :

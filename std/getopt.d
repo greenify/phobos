@@ -1641,7 +1641,6 @@ void defaultGetoptFormatter(Output)(Output output, string text, Option[] opt)
 @system unittest
 {
     import std.conv;
-
     import std.array;
     import std.string;
     bool a;
@@ -1669,7 +1668,7 @@ void defaultGetoptFormatter(Output)(Output output, string text, Option[] opt)
 
 @system unittest
 {
-    import std.array ;
+    import std.array;
     import std.conv;
     import std.string;
     bool a;

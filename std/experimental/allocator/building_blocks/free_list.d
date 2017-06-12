@@ -429,7 +429,7 @@ struct ContiguousFreeList(ParentAllocator,
     import std.experimental.allocator.building_blocks.null_allocator
         : NullAllocator;
     import std.experimental.allocator.building_blocks.stats_collector
-        : StatsCollector, Options;
+        : Options, StatsCollector;
     import std.traits : hasMember;
     import std.typecons : Ternary;
 
@@ -676,7 +676,6 @@ struct ContiguousFreeList(ParentAllocator,
     import std.experimental.allocator.building_blocks.allocator_list
         : AllocatorList;
     import std.experimental.allocator.gc_allocator : GCAllocator;
-
     import std.experimental.allocator.common : unbounded;
 
     alias ScalableFreeList = AllocatorList!((n) =>
@@ -758,14 +757,13 @@ struct SharedFreeList(ParentAllocator,
     import std.conv : text;
     import std.exception : enforce;
     import std.traits : hasMember;
+    import core.atomic : atomicOp, cas;
+    import core.internal.spinlock : SpinLock;
 
     static assert(approxMaxNodes, "approxMaxNodes must not be null.");
     static assert(minSize != unbounded, "Use minSize = 0 for no low bound.");
     static assert(maxSize >= (void*).sizeof,
         "Maximum size must accommodate a pointer.");
-
-    import core.atomic : atomicOp, cas;
-    import core.internal.spinlock : SpinLock;
 
     static if (minSize != chooseAtRuntime)
     {

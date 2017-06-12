@@ -66,7 +66,7 @@ struct AllocatorList(Factory, BookkeepingAllocator = GCAllocator)
 {
     import std.conv : emplace;
     import std.experimental.allocator.building_blocks.stats_collector
-        : StatsCollector, Options;
+        : Options, StatsCollector;
     import std.traits : hasMember;
     import std.typecons : Ternary;
 

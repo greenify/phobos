@@ -297,17 +297,17 @@ module std.experimental.allocator.building_blocks;
 public import
     std.experimental.allocator.building_blocks.affix_allocator,
     std.experimental.allocator.building_blocks.allocator_list,
+    std.experimental.allocator.building_blocks.bitmapped_block,
     std.experimental.allocator.building_blocks.bucketizer,
     std.experimental.allocator.building_blocks.fallback_allocator,
     std.experimental.allocator.building_blocks.free_list,
     std.experimental.allocator.building_blocks.free_tree,
-    std.experimental.allocator.gc_allocator,
-    std.experimental.allocator.building_blocks.bitmapped_block,
     std.experimental.allocator.building_blocks.kernighan_ritchie,
-    std.experimental.allocator.mallocator,
-    std.experimental.allocator.mmap_allocator,
     std.experimental.allocator.building_blocks.null_allocator,
     std.experimental.allocator.building_blocks.quantizer,
     std.experimental.allocator.building_blocks.region,
     std.experimental.allocator.building_blocks.segregator,
-    std.experimental.allocator.building_blocks.stats_collector;
+    std.experimental.allocator.building_blocks.stats_collector,
+    std.experimental.allocator.gc_allocator,
+    std.experimental.allocator.mallocator,
+    std.experimental.allocator.mmap_allocator;

@@ -4250,8 +4250,8 @@ void formatTest(T)(string fmt, T val, string[] expected, size_t ln = __LINE__, s
 {
     import core.stdc.string : strlen;
     import std.array : appender;
-    import std.conv : octal, text;
     import std.c.stdio : snprintf;
+    import std.conv : octal, text;
 
     debug(format) printf("std.format.format.unittest\n");
 
@@ -5938,11 +5938,11 @@ char[] sformat(Char, Args...)(char[] buf, in Char[] fmt, Args args)
 @system unittest
 {
     import core.exception;
+    import std.exception;
     import std.format;
 
     debug(string) trustedPrintf("std.string.sformat.unittest\n");
 
-    import std.exception;
     assertCTFEable!(
     {
     char[10] buf;

@@ -22,9 +22,9 @@ struct AffixAllocator(Allocator, Prefix, Suffix = void)
     import std.algorithm.comparison : min;
     import std.conv : emplace;
     import std.experimental.allocator : IAllocator, theAllocator;
-    import std.experimental.allocator.common : stateSize, forwardToMember,
-        roundUpToMultipleOf, alignedAt, alignDownTo, roundUpToMultipleOf,
-        hasStaticallyKnownAlignment;
+    import std.experimental.allocator.common : alignDownTo, alignedAt,
+        forwardToMember, hasStaticallyKnownAlignment, roundUpToMultipleOf,
+        stateSize;
     import std.math : isPowerOf2;
     import std.traits : hasMember;
     import std.typecons : Ternary;

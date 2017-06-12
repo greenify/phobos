@@ -1825,8 +1825,8 @@ alias sharSwitchLowerBound = sharMethod!switchUniformLowerBound;
     {
         import core.stdc.stdlib : malloc;
         import std.exception : enforce;
-
         import core.checkedint : mulu;
+
         bool overflow;
         size_t nbytes = mulu(size, T.sizeof, overflow);
         if (overflow) assert(0);
@@ -1839,13 +1839,13 @@ alias sharSwitchLowerBound = sharMethod!switchUniformLowerBound;
     {
         import core.stdc.stdlib : realloc;
         import std.exception : enforce;
+        import core.checkedint : mulu;
+
         if (!size)
         {
             destroy(arr);
             return null;
         }
-
-        import core.checkedint : mulu;
         bool overflow;
         size_t nbytes = mulu(size, T.sizeof, overflow);
         if (overflow) assert(0);

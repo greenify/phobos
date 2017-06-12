@@ -228,13 +228,12 @@ to $(HTTP fantascienza.net/leonardo/so/, Leonardo Maffi).
 module std.range;
 
 public import std.array;
+import std.meta; // allSatisfy, staticMap
 public import std.range.interfaces;
 public import std.range.primitives;
-public import std.typecons : Flag, No, Yes;
-
-import std.meta; // allSatisfy, staticMap
 import std.traits; // CommonType, isCallable, isFloatingPoint, isIntegral,
     // isPointer, isSomeFunction, isStaticArray, Unqual
+public import std.typecons : Flag, No, Yes;
 
 
 /**

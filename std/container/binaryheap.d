@@ -16,10 +16,9 @@ Authors: $(HTTP erdani.com, Andrei Alexandrescu)
 */
 module std.container.binaryheap;
 
+public import std.container.util;
 import std.range.primitives;
 import std.traits;
-
-public import std.container.util;
 
 ///
 @system unittest

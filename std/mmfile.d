@@ -20,11 +20,12 @@ module std.mmfile;
 private import core.stdc.errno;
 private import core.stdc.stdio;
 private import core.stdc.stdlib;
-import std.conv, std.exception, std.stdio;
+import std.conv;
+import std.exception;
+import std.stdio;
 private import std.file;
 private import std.path;
 private import std.string;
-
 import std.internal.cstring;
 
 //debug = MMFILE;
