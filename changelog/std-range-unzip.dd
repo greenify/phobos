@@ -1,0 +1,11 @@
+`std.range.unzip` was added.
+
+$(REF unzip, std,range) transforms a range of tuples into a tuple of ranges.
+
+---
+import std.algorithm.comparison : equal;
+
+auto rs = iota(10, 15).enumerate.unzip;
+assert(rs[0].equal([0, 1, 2, 3, 4]));
+assert(rs[1].equal([10, 11, 12, 13, 14]));
+---

@@ -201,6 +201,12 @@ $(BOOKTABLE ,
         $(TD Creates a _range that iterates over the $(I n)'th elements of the
         given random-access ranges.
     ))
+    $(TR $(TD $(LREF unzip))
+        $(TD Given a _range consisting of tuples, creates a tuple of ranges.
+        The first element is a range of every first element in the source range,
+        the second element is a range of every second element in the source range,
+        etc.
+    ))
     $(TR $(TD $(LREF zip))
         $(TD Given $(I n) _ranges, creates a _range that successively returns a
         tuple of all the first elements, a tuple of all the second elements,
@@ -235,7 +241,7 @@ public import std.typecons : Flag, Yes, No;
 import std.meta; // allSatisfy, staticMap
 import std.traits; // CommonType, isCallable, isFloatingPoint, isIntegral,
     // isPointer, isSomeFunction, isStaticArray, Unqual
-
+import std.typecons : isTuple;
 
 /**
 Iterates a bidirectional range backwards. The original range can be
@@ -11843,4 +11849,292 @@ pure @safe unittest
     static immutable r1 = [1, 2, 3, 4];
     static immutable r2 = [1, 2, 3, 4, 0, 0];
     assert(r1.padRight(0, 6).equal(r2));
+}
+
+/**
+`unzip` transforms a range of tuples into a tuple of ranges.
+The first element is a range of every first element in the source range,
+the second element is a range of every second element in the source range,
+etc.
+
+Params:
+    r = range of tuples to extract
+
+Returns: A tuple of ranges containing the respective element of each tuple of `r`
+*/
+auto unzip(Range)(Range r)
+if (isInputRange!Range)
+{
+    return Unzip!(Range)(r);
+}
+
+private struct Unzip(Range)
+{
+    private
+    {
+        Range r;
+        alias T = ElementType!(Unqual!Range);
+        size_t fidx; // front
+
+        //enum hasBidx =  isTuple!T || hasLength!T;
+        enum hasBidx = true;
+
+        static if (hasBidx)
+            size_t bidx; // back
+    }
+
+    this(Range r)
+    {
+        this.r = r;
+        static if (isTuple!T)
+        {
+            bidx = T.Types.length;
+        }
+        // TODO: how should the length be handled?
+        else static if (hasLength!T)
+        {
+            import std.algorithm.searching : minElement;
+            import std.algorithm.iteration : map;
+            bidx = r.map!(a => a.length).minElement;
+        }
+        else
+        {
+            import std.algorithm.searching : minElement;
+            import std.algorithm.iteration : map;
+            bidx = r.map!(a => a.walkLength).minElement;
+        }
+    }
+
+    bool empty() const
+    {
+        return length == 0;
+    }
+
+    void popFront()
+    {
+        fidx++;
+    }
+
+    auto front()
+    {
+        assert(!empty);
+        return this[fidx];
+    }
+
+    //static if (hasBidx)
+    //{
+        void popBack()
+        {
+            bidx--;
+        }
+
+        auto back()
+        {
+            assert(!empty);
+            return this[bidx - 1];
+        }
+
+        size_t length() const
+        {
+            return bidx - fidx;
+        }
+    //}
+
+    static if (isTuple!(T))
+    {
+        auto opIndex(size_t i)
+        {
+            import std.algorithm.iteration : map;
+            return r.map!((t) {
+                import std.meta : aliasSeqOf;
+                switch(i)
+                {
+                    foreach (i; aliasSeqOf!(T.Types.length.iota))
+                        case i: return t[i];
+
+                    default: assert(0);
+                }
+            });
+        }
+    }
+    else
+    {
+        auto opIndex(size_t i)
+        {
+            import std.algorithm.iteration : map;
+            return r.map!(t => t.drop(i).front);
+        }
+    }
+
+    auto opSlice(size_t i, size_t j)
+    {
+        auto r = typeof(this)(r);
+        r.fidx = i;
+        static if (hasBidx)
+            r.bidx = j;
+        return r;
+    }
+
+    auto save()
+    {
+        auto r = typeof(this)(r);
+        r.fidx = fidx;
+        static if (hasBidx)
+            r.bidx = bidx;
+        return r;
+    }
+
+    alias opSlice = save;
+
+    static if (isTuple!(T) && isForwardRange!Range)
+    auto toTuple()
+    {
+        import std.algorithm.iteration : map;
+        import std.array : join;
+        import std.conv : text;
+        import std.typecons : tuple;
+
+        static auto generateElements(size_t length)
+        {
+            const s = iota(length)
+                .map!(i => text("r.map!(t => t[", i, "])"))
+                .join(",");
+            return "tuple(" ~ s ~ ")";
+        }
+        return mixin(generateElements(T.Types.length));
+    }
+}
+
+///
+nothrow pure @safe unittest
+{
+    import std.algorithm.comparison : equal;
+
+    auto rs = iota(10, 15).enumerate.unzip;
+    assert(rs[0].equal([0, 1, 2, 3, 4]));
+    assert(rs[1].equal([10, 11, 12, 13, 14]));
+}
+
+///
+pure @safe unittest
+{
+    import std.algorithm.comparison : equal;
+    import std.typecons : tuple;
+
+    auto arr1 = [1, 2, 3];
+    auto arr2 = [5, 6, 7];
+
+    // pack the array
+    auto res = zip(arr1, arr2);
+    //assert(res[0] == tuple(1, 5));
+    assert(res.equal!((a, b) => a == b)([tuple(1, 5), tuple(2, 6), tuple(3, 7)]));
+
+    // unpack the zip
+    auto ures = res.unzip;
+    assert(ures.equal!equal([[1, 2, 3], [5, 6, 7]]));
+
+    // back to a zip
+    auto zures = ures.toTuple.expand.zip;
+    assert(zures.equal!((a, b) => a == b)([tuple(1, 5), tuple(2, 6), tuple(3, 7)]));
+}
+
+///
+nothrow pure @safe unittest
+{
+    import std.algorithm.comparison : equal;
+    import std.algorithm.iteration : map;
+    import std.typecons : tuple;
+
+    auto divMod(int n, int m) {
+        return tuple(n / m, n % m);
+    }
+
+    auto rs = iota(1, 20).map!(m => divMod(20,m)).unzip;
+
+    assert(rs.equal!equal([
+        [20, 10, 6, 5, 4, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+        [0, 0, 2, 0, 0, 2, 6, 4, 2, 0, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+    ]));
+}
+
+/// unzip can transpose normal ranges too
+nothrow pure @safe unittest
+{
+    import std.algorithm.comparison : equal;
+    import std.algorithm.iteration : map;
+    assert(3.iota.map!(e => e.repeat(3)).unzip.equal!equal(3.iota.repeat(3)));
+}
+
+// test @nogc
+@nogc nothrow pure @safe unittest
+{
+    import std.algorithm.comparison : equal;
+    import std.algorithm.iteration : filter;
+
+    auto rs = iota(10, 15).filter!(a => true).enumerate.unzip.toTuple;
+    static immutable rs0 = [0, 1, 2, 3, 4];
+    assert(rs[0].equal(rs0));
+    static immutable rs1 = [10, 11, 12, 13, 14];
+    assert(rs[1].equal(rs1));
+}
+
+// test infinite ranges
+pure @safe unittest
+{
+    import std.algorithm.comparison : equal;
+    import std.algorithm.iteration : filter;
+
+    auto arr = [4, 5].cycle;
+    auto rs = arr.enumerate.unzip;
+    assert(rs.length == 2);
+    assert(rs[0].take(3).equal([0, 1, 2]));
+    assert(rs[1].take(3).equal([4, 5, 4]));
+}
+
+pure @safe unittest
+{
+    import std.algorithm.comparison : equal;
+    import std.internal.test.dummyrange : AllDummyRanges;
+
+    foreach (DummyType; AllDummyRanges)
+    static if (isForwardRange!DummyType)
+    {
+        void check(R)(R r)
+        {
+            auto res = [[1, 2, 3], [7, 8, 9]];
+            assert(r[0].equal(res[0]));
+            assert(r[1].equal(res[1]));
+        }
+        auto arr1 = DummyType.init.take(3);
+        auto arr2 = DummyType.init.drop(6).take(3);
+        check(zip(arr1, arr2).unzip);
+        check(zip(arr1, arr2).unzip.toTuple.expand.zip.unzip);
+
+        // test normal ranges
+        assert(DummyType.init.chunks(3).unzip.equal!equal([[1, 4, 7, 10]]));
+        assert(DummyType.init.chunks(5).unzip.equal!equal([[1, 6], [2, 7], [3, 8], [4, 9], [5, 10]]));
+    }
+}
+
+// test variadic
+pure @safe unittest
+{
+    import std.algorithm.comparison : equal;
+    import std.algorithm.iteration : joiner;
+
+    auto res = zip([0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11]).unzip;
+
+    assert(res.joiner.equal(12.iota));
+    assert(res.toTuple.expand.chain.equal(12.iota));
+    assert(res.equal!equal(12.iota.chunks(3)));
+
+    // retro
+    assert(res.retro.equal!equal(12.iota.chunks(3).retro));
+
+    // slicing
+    assert(res[0 .. 1].equal!equal(3.iota.chunks(3)));
+    assert(res[1 .. 3].equal!equal(9.iota.chunks(3).drop(1)));
+
+    // save
+    assert(res.save.equal!equal(12.iota.chunks(3)));
 }
