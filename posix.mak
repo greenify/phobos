@@ -77,7 +77,7 @@ ROOT_OF_THEM_ALL = generated
 ROOT = $(ROOT_OF_THEM_ALL)/$(OS)/$(BUILD)/$(MODEL)
 DUB=dub
 TOOLS_DIR=../tools
-DSCANNER_HASH=bb32e9f1e3e5206deb11b3dbc43ad44e23fabf96
+DSCANNER_HASH=f90b4ed87c4089a7dc9883d3ee48623ad8b46df6
 DSCANNER_DIR=../dscanner-$(DSCANNER_HASH)
 
 # Documentation-related stuff
