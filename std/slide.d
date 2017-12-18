@@ -273,11 +273,13 @@ public:
         }
 
         // Whether the last slide frame size is less than windowSize
-        static if (withPartial)
         private bool hasPartialElements()
         {
             pragma(inline, true);
-            return gap != 0 && source.length > numberOfFullFrames * stepSize;
+            static if (withPartial)
+                return gap != 0 && source.length > numberOfFullFrames * stepSize;
+            else
+                return 0;
         }
 
         /// Length. Only if `hasLength!Source` is `true`
@@ -300,18 +302,13 @@ public:
                   At most:
                       [p, p + stepSize, ..., p + stepSize * n]
 
+                5.iota.slides(2, 1) => [0, 1], [1, 2], [2, 3], [3, 4]       (4)
+                7.iota.slides(2, 2) => [0, 1], [2, 3], [4, 5], [6]          (4)
+                7.iota.slides(2, 3) => [0, 1], [3, 4], [6]                  (3)
+                7.iota.slides(3, 2) => [0, 1, 2], [2, 3, 4], [4, 5, 6]      (3)
+                7.iota.slides(3, 3) => [0, 1, 2], [3, 4, 5], [6]            (3)
                 */
-                static if (withPartial)
-                    /**
-                    5.iota.slides(2, 1) => [0, 1], [1, 2], [2, 3], [3, 4]       (4)
-                    7.iota.slides(2, 2) => [0, 1], [2, 3], [4, 5], [6]          (4)
-                    7.iota.slides(2, 3) => [0, 1], [3, 4], [6]                  (3)
-                    7.iota.slides(3, 2) => [0, 1, 2], [2, 3, 4], [4, 5, 6]      (3)
-                    7.iota.slides(3, 3) => [0, 1, 2], [3, 4, 5], [6]            (3)
-                    */
-                    return numberOfFullFrames + hasPartialElements;
-                else
-                    return numberOfFullFrames;
+                return numberOfFullFrames + hasPartialElements;
             }
         }
     }
@@ -348,13 +345,8 @@ public:
             typeof(this) opSlice(size_t lower, size_t upper)
             {
                 import std.algorithm.comparison : min;
-                assert(lower <= upper, "slide slicing index out of bounds");
-
-                static if (withPartial)
-                    assert(upper <= numberOfFullFrames + hasPartialElements,
-                            "slide slicing index out of bounds");
-                else
-                    assert(upper <= numberOfFullFrames, "slide slicing index out of bounds");
+                if (upper > numberOfFullFrames + hasPartialElements || lower > upper)
+                    return this[$ ..$];
 
                 lower *= stepSize;
                 upper *= stepSize;
@@ -377,11 +369,12 @@ public:
                   - [0, 1, 2, 3, 4].slide(4) -> s = [[0, 1, 2, 3], [1, 2, 3, 4]]
                     rightPos for s[0..2]: (upper=2) + (windowSize=4) - 1 = 5
                 */
-                auto rightPos = min(upper + windowSize - 1, len);
                 static if (withPartial)
-                    rightPos = min(len, upper );
-                writeln("leftPos:", lower);
-                writeln("rightPos:", rightPos);
+                    immutable rightPos = min(len, upper + 1 - hasPartialElements);
+                else
+                    immutable rightPos = min(upper + windowSize - 1, len);
+
+                writeln("rightPos", rightPos);
                 return typeof(this)(source[min(lower, len) .. rightPos], windowSize, stepSize);
             }
         }
@@ -533,15 +526,33 @@ public:
 unittest
 {
     import std.algorithm.comparison : equal;
-    auto r = 7.iota.slide!(No.withPartial)(2, 3);
+    import std.algorithm.setops : cartesianProduct;
 
-    assert(r[0 .. 1].equal!equal([[0, 1]]));
-    assert(r[0 .. 2].equal!equal([[0, 1], [3, 4]]));
+    //static foreach (expectedLength, Partial; [No.withPartial, Yes.withPartial])
+    static foreach (expectedLength, Partial; [Yes.withPartial])
+    {
+        foreach (i; 1 .. 10)
+        foreach (j; 1 .. 10)
+        {
+            auto r = 10.iota.slide!Partial(i, j);
+            auto arr = r.array;
 
-    assert(r[1 .. 1].empty);
-    assert(r[1 .. 2].equal!equal([[3, 4]]));
+            // + 2 to test empty slices too
+            foreach (a, b; cartesianProduct((i + 2).iota, (j + 2).iota))
+            {
+                if (a > b || b > arr.length)
+                    continue;
 
-    assert(r[2 .. 2].empty);
+                scope(failure) {
+                    writeln("r: ", r);
+                    writeln("a: ", a, ", b:", b);
+                    writeln("arr: ", arr[a .. b]);
+                    writeln("r: ", r[a .. b]);
+                }
+                assert(r[a .. b].equal!equal(arr[a .. b]));
+            }
+        }
+    }
 }
 __EOF__
 
@@ -862,7 +873,7 @@ __EOF__
     assert(iota(3).slide!(No.withPartial)(4)[0 .. $].empty);
 }
 
-// test slicing
+// test slicing (Yes.withPartial)
 @safe pure nothrow unittest
 {
     import std.algorithm.comparison : equal;
