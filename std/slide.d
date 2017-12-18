@@ -351,13 +351,10 @@ public:
                 assert(lower <= upper, "slide slicing index out of bounds");
 
                 static if (withPartial)
-                {
-                    assert(upper <= numberOfFullFrames, "slide slicing index out of bounds");
-                }
+                    assert(upper <= numberOfFullFrames + hasPartialElements,
+                            "slide slicing index out of bounds");
                 else
-                {
                     assert(upper <= numberOfFullFrames, "slide slicing index out of bounds");
-                }
 
                 lower *= stepSize;
                 upper *= stepSize;
@@ -380,9 +377,12 @@ public:
                   - [0, 1, 2, 3, 4].slide(4) -> s = [[0, 1, 2, 3], [1, 2, 3, 4]]
                     rightPos for s[0..2]: (upper=2) + (windowSize=4) - 1 = 5
                 */
-                return typeof(this)
-                    (source[min(lower, len) .. min(upper + windowSize - 1, len)],
-                     windowSize, stepSize);
+                auto rightPos = min(upper + windowSize - 1, len);
+                static if (withPartial)
+                    rightPos = min(len, upper );
+                writeln("leftPos:", lower);
+                writeln("rightPos:", rightPos);
+                return typeof(this)(source[min(lower, len) .. rightPos], windowSize, stepSize);
             }
         }
         else static if (hasSliceToEnd)
@@ -532,11 +532,16 @@ public:
 
 unittest
 {
-    7.iota.slide(2, 3).writeln;
-    auto r = 6.iota.slide(2, 3);
-    r[0 .. 1].writeln;
-    r[0 .. 2].writeln;
-    r[0 .. 3].writeln;
+    import std.algorithm.comparison : equal;
+    auto r = 7.iota.slide!(No.withPartial)(2, 3);
+
+    assert(r[0 .. 1].equal!equal([[0, 1]]));
+    assert(r[0 .. 2].equal!equal([[0, 1], [3, 4]]));
+
+    assert(r[1 .. 1].empty);
+    assert(r[1 .. 2].equal!equal([[3, 4]]));
+
+    assert(r[2 .. 2].empty);
 }
 __EOF__
 
@@ -855,6 +860,42 @@ __EOF__
     // special cases
     assert(iota(3).slide!(Yes.withPartial)(4)[0 .. $].equal!equal([[0, 1, 2]]));
     assert(iota(3).slide!(No.withPartial)(4)[0 .. $].empty);
+}
+
+// test slicing
+@safe pure nothrow unittest
+{
+    import std.algorithm.comparison : equal;
+
+    auto r = 7.iota.slide!(Yes.withPartial)(2, 3);
+
+    assert(r[0 .. 1].equal!equal([[0, 1]]));
+    assert(r[0 .. 2].equal!equal([[0, 1], [3, 4]]));
+    assert(r[0 .. 3].equal!equal([[0, 1], [3, 4], [6]]));
+
+    assert(r[1 .. 1].empty);
+    assert(r[1 .. 2].equal!equal([[3, 4]]));
+    assert(r[1 .. 3].equal!equal([[3, 4], [6]]));
+
+    assert(r[2 .. 2].empty);
+    assert(r[2 .. 3].equal!equal([[6]]));
+    assert(r[3 .. 3].empty);
+}
+
+// test slicing (No.withPartial)
+@safe pure nothrow unittest
+{
+    import std.algorithm.comparison : equal;
+
+    auto r = 7.iota.slide!(No.withPartial)(2, 3);
+
+    assert(r[0 .. 1].equal!equal([[0, 1]]));
+    assert(r[0 .. 2].equal!equal([[0, 1], [3, 4]]));
+
+    assert(r[1 .. 1].empty);
+    assert(r[1 .. 2].equal!equal([[3, 4]]));
+
+    assert(r[2 .. 2].empty);
 }
 
 // length
