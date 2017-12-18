@@ -1000,21 +1000,20 @@ public:
 
     assert(iota(3).slide!(Yes.withPartial)(4)[0 .. $].equal!equal([[0, 1, 2]]));
     assert(iota(3).slide!(Yes.withPartial)(4)[$ .. $].empty);
-    //assert(iota(3).slide!(Yes.withPartial)(4)[$ .. 0].empty);
     assert(iota(3).slide!(Yes.withPartial)(4)[$/2 .. $].equal!equal([[0, 1, 2]]));
 
     // with different step sizes
     assert(iota(3).slide!(Yes.withPartial)(4, 5)[0 .. $].equal!equal([[0, 1, 2]]));
     assert(iota(3).slide!(Yes.withPartial)(4, 6)[$ .. $].empty);
-    //assert(iota(3).slide!(Yes.withPartial)(4, 7)[$ .. 0].empty);
     assert(iota(3).slide!(Yes.withPartial)(4, 8)[$/2 .. $].equal!equal([[0, 1, 2]]));
 
     // with different step sizes
-    // TODO:
-    //iota(10).slide!(Yes.withPartial)(4, 3)[0 .. $/2].writeln;
-    //iota(10).slide!(Yes.withPartial)(4, 3)[$/2 .. $].writeln;
-    //assert(iota(10).slide!(Yes.withPartial)(4, 3)[$/2 .. $].equal!equal([[6, 7, 8, 9]]));
-    //assert(iota(10).slide!(Yes.withPartial)(4, 4)[$/2 .. $].equal!equal([[4, 5, 6, 7]]));
+    assert(iota(10).slide!(Yes.withPartial)(4, 3)[$/2 .. $].equal!equal(
+        [[3, 4, 5, 6], [6, 7, 8, 9]]
+    ));
+    assert(iota(10).slide!(Yes.withPartial)(4, 4)[$/2 .. $].equal!equal(
+        [[4, 5, 6, 7], [8, 9]]
+    ));
 }
 
 // test opSlice combinations
@@ -1030,13 +1029,12 @@ public:
         {
             auto r = 20.iota.slide!Partial(windowSize, stepSize);
             auto arr = r.array;
+            assert(r.length == arr.length);
 
             // + 2 to test empty slices too
-            foreach (a, b; cartesianProduct((windowSize + 2).iota, (stepSize + 2).iota))
+            foreach (b; 0 .. arr.length + 1)
+            foreach (a; 0 .. b)
             {
-                if (a > b || b > arr.length)
-                    continue;
-
                 assert(r[a .. b].equal!equal(arr[a .. b]));
             }
         }
@@ -1103,7 +1101,6 @@ public:
 {
     import std.algorithm.comparison : equal;
 
-    // TODO
     static foreach (Partial; [Yes.withPartial, No.withPartial])
     {{
         assert(iota(7).slide!Partial(2, 1).retro.equal!equal(
@@ -1382,7 +1379,9 @@ public:
             foreach (stepSize; 1 .. 10)
             {
                 auto slider = r.slide!Partial(windowSize, stepSize);
-                assert(slider.retro.array.retro.equal!equal(slider));
+                auto sliderRetro = slider.retro.array;
+                assert(slider.length == sliderRetro.length);
+                assert(sliderRetro.retro.equal!equal(slider));
             }
         }
 
