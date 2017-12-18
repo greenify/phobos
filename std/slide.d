@@ -348,37 +348,66 @@ public:
                 if (upper > numberOfFullFrames + hasPartialElements || lower > upper)
                     assert(0, "slide slicing index out of bounds");
 
-                if (lower == upper)
-                    return this[$ .. $];
-
                 lower *= stepSize;
                 upper *= stepSize;
 
                 immutable len = source.length;
 
-                /*
-                After we have normalized `lower` and `upper` by `stepSize`,
-                we only need to look at the case of `stepSize=1`.
-                As `leftPos`, is equal to `lower`, we will only look `rightPos`.
-                Notice that starting from `upper`,
-                we only need to move for `windowSize - 1` to the right:
 
-                  - [0, 1, 2, 3].slide(2) -> s = [[0, 1], [1, 2], [2, 3]]
-                    rightPos for s[0..3]: (upper=3) + (windowSize=2) - 1 = 4
-
-                  - [0, 1, 2, 3].slide(3) -> s = [[0, 1, 2], [1, 2, 3]]
-                    rightPos for s[0..2]: (upper=2) + (windowSize=3) - 1 = 4
-
-                  - [0, 1, 2, 3, 4].slide(4) -> s = [[0, 1, 2, 3], [1, 2, 3, 4]]
-                    rightPos for s[0..2]: (upper=2) + (windowSize=4) - 1 = 5
-                */
                 static if (withPartial)
                 {
                     import std.algorithm.comparison : max;
+
+                    if (lower == upper)
+                        return this[$ .. $];
+
+                    /*
+                    A) If `stepSize` >= `windowSize` => `rightPos = upper`
+
+                       [0, 1, 2, 3, 4, 5, 6].slide(2, 3) -> s = [[0, 1], [3, 4], [6]]
+                         rightPos for s[0..2]: (upper=2) * (stepSize=3) = 6
+                         6.iota.slide(2, 3) = [[0, 1], [3, 4]]
+
+                    B) If `stepSize` < `windowSize` => add `windowSize - stepSize` to `upper`
+
+                       [0, 1, 2, 3].slide(2) = [[0, 1], [1, 2], [2, 3]]
+                         rightPos for s[0..1]: = (upper=1) * (stepSize=1) = 1
+                         1.iota.slide(2) = [[0]]
+
+                         rightPos for s[0..1]: = (upper=1) * (stepSize=1) + (windowSize-stepSize=1) = 2
+                         1.iota.slide(2) = [[0, 1]]
+
+                       More complex:
+
+                       20.iota.slide(7, 6)[0 .. 2]
+                         rightPos: (upper=2) * (stepSize=6) = 12.iota
+                         12.iota.slide(7, 6) = [[0, 1, 2, 3, 4, 5, 6], [6, 7, 8, 9, 10, 11]]
+
+                       Now we add up for the difference between `windowSize` and `stepSize`:
+
+                         rightPos: (upper=2) * (stepSize=6) + (windowSize-stepSize=1) = 13.iota
+                         13.iota.slide(7, 6) = [[0, 1, 2, 3, 4, 5, 6], [6, 7, 8, 9, 10, 11, 12]]
+                    */
                     immutable rightPos = min(len, upper + max(0, windowSize - stepSize));
                 }
                 else
                 {
+                    /*
+                    After we have normalized `lower` and `upper` by `stepSize`,
+                    we only need to look at the case of `stepSize=1`.
+                    As `leftPos`, is equal to `lower`, we will only look `rightPos`.
+                    Notice that starting from `upper`,
+                    we only need to move for `windowSize - 1` to the right:
+
+                      - [0, 1, 2, 3].slide(2) -> s = [[0, 1], [1, 2], [2, 3]]
+                        rightPos for s[0..3]: (upper=3) + (windowSize=2) - 1 = 4
+
+                      - [0, 1, 2, 3].slide(3) -> s = [[0, 1, 2], [1, 2, 3]]
+                        rightPos for s[0..2]: (upper=2) + (windowSize=3) - 1 = 4
+
+                      - [0, 1, 2, 3, 4].slide(4) -> s = [[0, 1, 2, 3], [1, 2, 3, 4]]
+                        rightPos for s[0..2]: (upper=2) + (windowSize=4) - 1 = 5
+                    */
                     immutable rightPos = min(upper + windowSize - 1, len);
                 }
 
@@ -529,39 +558,6 @@ public:
         }
     }
 }
-
-unittest
-{
-    import std.algorithm.comparison : equal;
-    import std.algorithm.setops : cartesianProduct;
-
-    static foreach (expectedLength, Partial; [No.withPartial, Yes.withPartial])
-    {
-        foreach (windowSize; 1 .. 20)
-        foreach (stepSize; 1 .. 20)
-        {
-            auto r = 20.iota.slide!Partial(windowSize, stepSize);
-            auto arr = r.array;
-
-            // + 2 to test empty slices too
-            foreach (a, b; cartesianProduct((windowSize + 2).iota, (stepSize + 2).iota))
-            {
-                if (a > b || b > arr.length)
-                    continue;
-
-                scope(failure) {
-                    writeln("r: ", r);
-                    writeln("windowSize: ", windowSize, ", stepSize:", stepSize);
-                    writeln("a: ", a, ", b:", b);
-                    writeln("arr: ", arr[a .. b]);
-                    writeln("r: ", r[a .. b]);
-                }
-                assert(r[a .. b].equal!equal(arr[a .. b]));
-            }
-        }
-    }
-}
-__EOF__
 
 ///
 @safe pure nothrow unittest
@@ -1019,6 +1015,32 @@ __EOF__
     //iota(10).slide!(Yes.withPartial)(4, 3)[$/2 .. $].writeln;
     //assert(iota(10).slide!(Yes.withPartial)(4, 3)[$/2 .. $].equal!equal([[6, 7, 8, 9]]));
     //assert(iota(10).slide!(Yes.withPartial)(4, 4)[$/2 .. $].equal!equal([[4, 5, 6, 7]]));
+}
+
+// test opSlice combinations
+@safe pure nothrow unittest
+{
+    import std.algorithm.comparison : equal;
+    import std.algorithm.setops : cartesianProduct;
+
+    static foreach (expectedLength, Partial; [No.withPartial, Yes.withPartial])
+    {
+        foreach (windowSize; 1 .. 15)
+        foreach (stepSize; 1 .. 15)
+        {
+            auto r = 20.iota.slide!Partial(windowSize, stepSize);
+            auto arr = r.array;
+
+            // + 2 to test empty slices too
+            foreach (a, b; cartesianProduct((windowSize + 2).iota, (stepSize + 2).iota))
+            {
+                if (a > b || b > arr.length)
+                    continue;
+
+                assert(r[a .. b].equal!equal(arr[a .. b]));
+            }
+        }
+    }
 }
 
 // test with infinite ranges
