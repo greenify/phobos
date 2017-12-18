@@ -346,7 +346,10 @@ public:
             {
                 import std.algorithm.comparison : min;
                 if (upper > numberOfFullFrames + hasPartialElements || lower > upper)
-                    return this[$ ..$];
+                    assert(0, "slide slicing index out of bounds");
+
+                if (lower == upper)
+                    return this[$ .. $];
 
                 lower *= stepSize;
                 upper *= stepSize;
@@ -370,11 +373,15 @@ public:
                     rightPos for s[0..2]: (upper=2) + (windowSize=4) - 1 = 5
                 */
                 static if (withPartial)
-                    immutable rightPos = min(len, upper + 1 - hasPartialElements);
+                {
+                    import std.algorithm.comparison : max;
+                    immutable rightPos = min(len, upper + max(0, windowSize - stepSize));
+                }
                 else
+                {
                     immutable rightPos = min(upper + windowSize - 1, len);
+                }
 
-                writeln("rightPos", rightPos);
                 return typeof(this)(source[min(lower, len) .. rightPos], windowSize, stepSize);
             }
         }
@@ -528,23 +535,23 @@ unittest
     import std.algorithm.comparison : equal;
     import std.algorithm.setops : cartesianProduct;
 
-    //static foreach (expectedLength, Partial; [No.withPartial, Yes.withPartial])
-    static foreach (expectedLength, Partial; [Yes.withPartial])
+    static foreach (expectedLength, Partial; [No.withPartial, Yes.withPartial])
     {
-        foreach (i; 1 .. 10)
-        foreach (j; 1 .. 10)
+        foreach (windowSize; 1 .. 20)
+        foreach (stepSize; 1 .. 20)
         {
-            auto r = 10.iota.slide!Partial(i, j);
+            auto r = 20.iota.slide!Partial(windowSize, stepSize);
             auto arr = r.array;
 
             // + 2 to test empty slices too
-            foreach (a, b; cartesianProduct((i + 2).iota, (j + 2).iota))
+            foreach (a, b; cartesianProduct((windowSize + 2).iota, (stepSize + 2).iota))
             {
                 if (a > b || b > arr.length)
                     continue;
 
                 scope(failure) {
                     writeln("r: ", r);
+                    writeln("windowSize: ", windowSize, ", stepSize:", stepSize);
                     writeln("a: ", a, ", b:", b);
                     writeln("arr: ", arr[a .. b]);
                     writeln("r: ", r[a .. b]);
@@ -577,6 +584,8 @@ __EOF__
         [[0, 1], [4, 5], [8, 9]]
     ));
 }
+
+// TODO: check length
 
 /// set a custom stepsize (default 1)
 @safe pure nothrow unittest
