@@ -348,7 +348,16 @@ public:
             typeof(this) opSlice(size_t lower, size_t upper)
             {
                 import std.algorithm.comparison : min;
-                assert(lower <= upper && upper <= length, "slide slicing index out of bounds");
+                assert(lower <= upper, "slide slicing index out of bounds");
+
+                static if (withPartial)
+                {
+                    assert(upper <= numberOfFullFrames, "slide slicing index out of bounds");
+                }
+                else
+                {
+                    assert(upper <= numberOfFullFrames, "slide slicing index out of bounds");
+                }
 
                 lower *= stepSize;
                 upper *= stepSize;
@@ -520,6 +529,16 @@ public:
         }
     }
 }
+
+unittest
+{
+    7.iota.slide(2, 3).writeln;
+    auto r = 6.iota.slide(2, 3);
+    r[0 .. 1].writeln;
+    r[0 .. 2].writeln;
+    r[0 .. 3].writeln;
+}
+__EOF__
 
 ///
 @safe pure nothrow unittest
