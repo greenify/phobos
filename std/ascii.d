@@ -727,3 +727,33 @@ if (is(C : dchar))
         static assert(is(typeof(toUpper(T.init)) == dchar));
     }
 }
+
+// uncovered
+void foo() {
+    auto a = 1;
+    a++; // uncovered
+    a++; // uncovered
+    a++; // uncovered
+    a++; // uncovered
+    a++; // uncovered
+    a++; // uncovered
+    a++; // uncovered
+    a++; // uncovered
+    a++; // uncovered
+    a++; // uncovered
+    a++; // uncovered
+    a++; // uncovered
+    a++; // uncovered
+    a++; // uncovered
+    a++; // uncovered
+    a++; // uncovered
+    a++; // uncovered
+    a++; // uncovered
+    a++; // uncovered
+    a++; // uncovered
+    a++; // uncovered
+    a++; // uncovered
+    a++; // uncovered
+    a++; // uncovered
+    a++; // uncovered
+}
