@@ -175,7 +175,6 @@ else
 endif
 
 ################################################################################
-MAIN = $(ROOT)/emptymain.d
 
 # Given one or more packages, returns the modules they contain
 P2MODULES=$(foreach P,$1,$(addprefix $P/,$(PACKAGE_$(subst /,_,$P))))
