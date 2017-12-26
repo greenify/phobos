@@ -2676,42 +2676,13 @@ public:
             assert(nWorkUnits * workUnitSize >= len);
 
             alias RTask = Task!(run, typeof(&reduceOnRange), R, size_t, size_t);
-            RTask[] tasks;
 
-            // Can't use alloca() due to Bug 3753.  Use a fixed buffer
-            // backed by malloc().
-            enum maxStack = 2_048;
-            byte[maxStack] buf = void;
-            immutable size_t nBytesNeeded = nWorkUnits * RTask.sizeof;
+            import std.experimental.allocator : dispose, makeArray;
+            import std.experimental.allocator.mallocator : Mallocator;
 
-            import core.stdc.stdlib : malloc, free;
-            if (nBytesNeeded < maxStack)
-            {
-                tasks = (cast(RTask*) buf.ptr)[0 .. nWorkUnits];
-            }
-            else
-            {
-                auto ptr = cast(RTask*) malloc(nBytesNeeded);
-                if (!ptr)
-                {
-                    throw new OutOfMemoryError(
-                        "Out of memory in std.parallelism."
-                    );
-                }
-
-                tasks = ptr[0 .. nWorkUnits];
-            }
-
-            scope(exit)
-            {
-                if (nBytesNeeded > maxStack)
-                {
-                    free(tasks.ptr);
-                }
-            }
-
-            foreach (ref t; tasks[])
-                emplaceRef(t, RTask());
+            alias alloc = Mallocator.instance;
+            auto tasks = alloc.makeArray!RTask(nWorkUnits);
+            scope(exit) alloc.dispose(tasks);
 
             // Hack to take the address of a nested function w/o
             // making a closure.
