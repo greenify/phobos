@@ -920,7 +920,7 @@ private void fillWithMemcpy(T)(void[] array, auto ref T filler) nothrow
     assert(a == [ 42, 42, 42, 42, 42]);
 }
 
-private T[] uninitializedFillDefault(T)(T[] array) nothrow
+private T[] uninitializedFillDefault(T)(T[] array)
 {
     T t = T.init;
     fillWithMemcpy(array, t);
