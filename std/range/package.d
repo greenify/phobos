@@ -11669,7 +11669,8 @@ if (isInputRange!R && isIntegral!(ElementType!R))
     }
 }
 
-/*********************************
+// Explicitly undocumented
+/*
  * An OutputRange that discards the data it receives.
  */
 struct NullSink
@@ -11677,7 +11678,7 @@ struct NullSink
     void put(E)(E){}
 }
 
-/// ditto
+/// An OutputRange that discards the data it receives.
 auto ref nullSink()
 {
     static NullSink sink;
